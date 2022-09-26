@@ -17,8 +17,7 @@ interface AuthContextType {
   isAuthenticated: boolean
 }
 
-// @ts-ignore
-export const AuthContext = createContext<AuthContextType>({})
+export const AuthContext = createContext<AuthContextType | null>(null)
 
 export const AuthProvider: React.FC = ({children}) => {
   const [user, setUser] = useState<AuthContextType["user"]>(null)

@@ -1,13 +1,37 @@
-import {Socket} from "socket.io"
+import {Server, Socket} from "socket.io"
+import {DefaultEventsMap} from "socket.io/dist/typed-events"
+import {Room, IRoom} from "../models/Room"
 
-export default (socket: Socket) => {
-  console.log(`user has connected: ${socket.id}`)
+export default async (io: Server<DefaultEventsMap, DefaultEventsMap, DefaultEventsMap, any>) => {
+  io.on("connection", (socket: Socket) => {
+    console.log(`user has connected: ${socket.id}`)
 
-  socket.on("message", (message) => {
-    console.log(message)
-  })
+    const emitRooms = async () => {
+      const roomList = await Room.find({})
+      socket.emit("server:room-list", roomList)
+    }
+    emitRooms()
 
-  socket.on("disconnect", () => {
-    console.log(`user has disconnected: ${socket.id}`)
+    const refreshRooms = async () => {
+      const roomList = await Room.find({})
+      io.emit("server:room-list", roomList)
+    }
+
+    const createRoom = async (_newRoom: IRoom) => {
+      const newRoom = new Room(_newRoom)
+
+      try {
+        await newRoom.save()
+        refreshRooms()
+      } catch (error) {
+        console.error(error)
+      }
+    }
+
+    socket.on("client:create-room", createRoom)
+
+    socket.on("disconnect", () => {
+      console.log(`user has disconnected: ${socket.id}`)
+    })
   })
 }

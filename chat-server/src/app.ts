@@ -18,7 +18,7 @@ const io = new Server(httpServer, {
 
 //websocket
 io.use(authValidation)
-io.on("connection", sockets)
+sockets(io)
 
 //express variables
 app.set("port", config.PORT)
